@@ -10,6 +10,16 @@ use App\Http\Requests\Library\BookRequest;
 
 class BookController extends Controller
 {
+    public function __construct()
+    {
+        view()->share('types', [
+           'Academic',
+           'Magazine',
+           'Story',
+           'Other'
+        ]);
+    }
+
     public function index() {
         $books = Book::bySchool(auth()->user()->school_id)->paginate();
 
@@ -20,8 +30,14 @@ class BookController extends Controller
         return view('library.books.show', compact('book'));
     }
 
+    public function edit(Book $book) {
+        $classes = Myclass::bySchool(auth()->user()->school_id)->get();
+
+        return view('library.books.edit', compact('book', 'classes'));
+    }
+
     public function create() {
-        $classes = Myclass::where('school_id', auth()->user()->school_id)->get();
+        $classes = Myclass::bySchool(auth()->user()->school_id)->get();
 
         return view('library.books.create', compact('classes'));
     }
@@ -44,5 +60,12 @@ class BookController extends Controller
         ]);
 
         return redirect()->route('library.books.show', $book->id);
+    }
+
+    public function update(BookRequest $request, $book)
+    {
+        Book::where('id', $book)->update($request->except('_method', '_token'));
+
+        return redirect()->route('library.books.index')->with('status', 'Book has been updated correctly');
     }
 }

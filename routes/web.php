@@ -138,16 +138,14 @@ Route::middleware(['auth','teacher'])->group(function (){
 
 Route::middleware(['auth', 'librarian'])->namespace('Library')->group(function () {
     Route::prefix('library')->name('library.')->group(function () {
-        Route::resource('books', 'BookController',
-            ['only' => ['index', 'show', 'create', 'store']]
-        );
+        Route::resource('books', 'BookController');
     });
 });
 
-Route::middleware(['auth','librarian'])->prefix('library')->name('library.')->group(function () {
-  Route::get('issue-books', 'IssuedbookController@create');
-  Route::post('issue-books', 'IssuedbookController@store');
-  Route::get('issued-books', 'IssuedbookController@index');
+Route::middleware(['auth','librarian'])->prefix('library')->name('library.issued-books.')->group(function () {
+  Route::get('issue-books', 'IssuedbookController@create')->name('create');
+  Route::post('issue-books', 'IssuedbookController@store')->name('store');
+  Route::get('issued-books', 'IssuedbookController@index')->name('index');
   Route::post('save_as_returned', 'IssuedbookController@update');
 });
 
@@ -240,6 +238,8 @@ Route::middleware(['auth','master.admin'])->group(function (){
   Route::get('edit/user/{id}','UserController@edit');
   Route::post('edit/user','UserController@update');
   Route::post('upload/file', 'UploadController@upload');
+  Route::post('users/import/user-xlsx','UploadController@import');
+  Route::get('users/export/students-xlsx', 'UploadController@export');
 //   Route::get('pdf/profile/{user_id}',function($user_id){
 //     $data = App\User::find($user_id);
 //     PDF::setOptions(['defaultFont' => 'sans-serif', 'isHtml5ParserEnabled' => true]);
@@ -274,4 +274,10 @@ Route::prefix('emails')->group(function () {
       $password = "ABCXYZ";
       return new App\Mail\SendWelcomeEmailToUser($user, $password);
   });
+});
+
+Route::middleware(['auth','student'])->prefix('stripe')->group(function(){
+  Route::get('charge', 'CashierController@index');
+  Route::post('charge','CashierController@store');
+  Route::get('receipts', 'PaymentController@index');
 });

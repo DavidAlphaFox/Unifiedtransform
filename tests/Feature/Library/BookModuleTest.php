@@ -52,6 +52,7 @@ class BookModuleTest extends TestCase
             ->assertRedirect(route('library.books.show', Book::first()->id));
 
         $this->assertEquals(1, Book::count());
+        $this->assertDatabaseHas('books', $book->toArray());
     }
 
     /** @test */
@@ -105,5 +106,27 @@ class BookModuleTest extends TestCase
             ->assertSessionHasErrors(['book_code']);
 
         $this->assertEquals(1, Book::count());
+    }
+
+    /** @test */
+    public function it_loads_the_edit_book_page() {
+        $book = create(Book::class);
+
+        $this->get(route('library.books.edit', $book))
+            ->assertStatus(200);
+    }
+
+    /** @test */
+    public function a_book_can_be_edited()
+    {
+        $book = create(Book::class, ['title' => 'Original title']);
+
+        $book->title = 'New title';
+
+        $this->from(route('library.books.edit', $book->id))
+            ->put(route('library.books.update', $book->id), $book->toArray())
+            ->assertRedirect(route('library.books.index'));
+
+        $this->assertDatabaseHas('books', $book->toArray());
     }
 }
